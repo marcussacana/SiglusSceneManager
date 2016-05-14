@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25123.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SiglusSceneManager", "SiglusSceneManager\SiglusSceneManager.csproj", "{B3D4DFF2-530D-43A5-8A53-7CB3E60391A3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SSMGui", "SSMGui\SSMGui.csproj", "{8390697E-A5E5-4422-AF3C-C321300EB4DC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B3D4DFF2-530D-43A5-8A53-7CB3E60391A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B3D4DFF2-530D-43A5-8A53-7CB3E60391A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B3D4DFF2-530D-43A5-8A53-7CB3E60391A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B3D4DFF2-530D-43A5-8A53-7CB3E60391A3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8390697E-A5E5-4422-AF3C-C321300EB4DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8390697E-A5E5-4422-AF3C-C321300EB4DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8390697E-A5E5-4422-AF3C-C321300EB4DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8390697E-A5E5-4422-AF3C-C321300EB4DC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
