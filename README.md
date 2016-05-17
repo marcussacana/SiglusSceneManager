@@ -11,7 +11,7 @@ I tried to write a function to recognize the algorithm that loads on the memory 
 Some games didn't work because they have a more complex algorithm so my program wasn't effective, noting the time difference 
 between the games of 2014/2016 and 2011/2012, I will suppose that the recent versions of Siglus have an algorithm that my program supports, so I won't 
 bother to add full compatibility.
-
+SiglusEngine has a dynamic algorithym, feel lucky if it recognize your game's algorithym. For now, 3 kinds are supported
 
 Notes:
 
