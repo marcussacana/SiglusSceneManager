@@ -61,12 +61,12 @@ namespace SSMGui {
             DialogResult dr = fd.ShowDialog();
             if (dr == DialogResult.OK) {
                 string fname = System.IO.Path.GetFileNameWithoutExtension(fd.FileName);
-                uint Base = 0;
+                int Base = 0;
                 //SiglusEngine_exe_SiglusEngine.exe_BaseOffset
                 if (fname.Contains(".") && fname.Contains("_")) {
                     string[] arr = fname.Split('_');
                     try {
-                        Base = uint.Parse(arr[arr.Length - 1], System.Globalization.NumberStyles.HexNumber);
+                        Base = int.Parse(arr[arr.Length - 1], System.Globalization.NumberStyles.HexNumber);
                     }
                     catch { goto erro; }
 
