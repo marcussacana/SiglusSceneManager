@@ -19,21 +19,17 @@ namespace SiglusSceneManager {
         public byte[] key { get; private set; }
 
         const byte MOV_AL = 0xA0;
-        const int L_MOV_AL = 0x5;
+        const int Length_MOV_AL = 0x5;
 
         const byte MOV_BYTE_PTR = 0x88;
-        const int L_MOV_BYTE_PTR = 0x3;
+        const int Length_MOV_BYTE_PTR = 0x3;
 
         const byte MOV_ESI = 0x8B;
-        const int L_MOV_ESI = 0x6;
+        const int Length_MOV_ESI = 0x6;
 
         //A0 ? ? ? ?
         //MOV AL, OFF;
-
-        //A0 ? ? ? ? 8B ? ? ? ? ?
-        //MOV AL, OFF, 8B Order
-        //-0x400000
-
+        
         /*
         MOVZX 0F B6 + 
         0D = ECX
@@ -161,18 +157,19 @@ namespace SiglusSceneManager {
         public Key GetKey(int ID) {
             if (ID > founds.Length)
                 throw new Exception("Invalid ID");
-            byte[] Alg = new byte[300];
+            byte[] data = new byte[300];
             int pos = founds[ID];
             Memory.Seek(pos, SeekOrigin.Begin);
-            Memory.Read(Alg, 0, Alg.Length);
+            Memory.Read(data, 0, data.Length);
             bool OldCode = false;
-            int[] ALVAL = new int[16];
-            int[] EBPVAL = new int[16];
+            int[] KeyBytes = new int[16];
+            int[] KeyOrder = new int[16];
             bool[] processed = new bool[16];
             int ind = 0;
-            if (isLongMOV(Alg[0]) || isMOVZX(Alg[0], Alg[1], Alg[2])) {
+            bool IsMain = data[128] >= 0xFD;
+            if (isLongMOV(data[0]) || isMOVZX(data[0], data[1], data[2])) {
                 int findStart = pos;
-                while (true) {
+                while (true) {//In this while he try find for the real First MOVZX, my "detection" Algoritm can return a wrong position
                     findStart -= 7;
                     Memory.Seek(findStart, SeekOrigin.Begin);
                     byte[] buff = new byte[3];
@@ -182,22 +179,24 @@ namespace SiglusSceneManager {
                         break;
                 }
                 Memory.Seek(7, SeekOrigin.Current);
-                Memory.Read(Alg, 0, Alg.Length);
+                Memory.Read(data, 0, data.Length);
                 OldCode = true;
                 for (int i = 0; ;) {
-                    if (i >= 224 || ind > 0xF)
+                    if (i >= 224 || ind > 0xF) {
+                        IsMain = data[i] == MOV_ESI;
                         break;
-                    if (isLongMOV(Alg[i+1])) {
-                        int val = int32(new byte[] { Alg[i + 3], Alg[i + 4], Alg[i + 5], Alg[i + 6] });
-                        string Register = ParseRegister(Alg[i + 1]);
-                        EBPVAL[ind] = val;
+                    }
+                    if (isLongMOV(data[i+1])) {
+                        int val = int32(new byte[] { data[i + 3], data[i + 4], data[i + 5], data[i + 6] });
+                        string Register = ParseRegister(data[i + 1]);
+                        KeyOrder[ind] = val;
                         byte[] DW = REGS[Register];
-                        ALVAL[ind] = DW[0];
+                        KeyBytes[ind] = DW[0];
                         ind++;
                         i += 7;
-                    } else if (isMOVZX(Alg[i], Alg[i + 1], Alg[i + 2])) {
-                        string Register = ParseRegister(Alg[i + 2]);
-                        int off = int32(new byte[] { Alg[i + 3], Alg[i + 4], Alg[i + 5], Alg[i + 6] });
+                    } else if (isMOVZX(data[i], data[i + 1], data[i + 2])) {
+                        string Register = ParseRegister(data[i + 2]);
+                        int off = int32(new byte[] { data[i + 3], data[i + 4], data[i + 5], data[i + 6] });
                         if (off > 0)
                             off -= Base;
                         int b = -1;
@@ -209,60 +208,62 @@ namespace SiglusSceneManager {
                         }
                         REGS[Register] = new byte[] { 0x0, 0x0, 0x0, b < 0 ? (byte)0 : (byte)b};
                         i += 7;
-                    } else if (Alg[i] == MOV_BYTE_PTR){
-                        string[] reg = ParseMOV(Alg[i + 1]).Split(',');
+                    } else if (data[i] == MOV_BYTE_PTR){
+                        string[] reg = ParseMOV(data[i + 1]).Split(',');
                         string Source = reg[1];
                         //string Target = reg[0];
-                        ALVAL[ind] = REGS[Source][0];
-                        EBPVAL[ind] = int8(Alg[i + 2]);
+                        KeyBytes[ind] = REGS[Source][0];
+                        KeyOrder[ind] = int8(data[i + 2]);
                         ind++;
-                        i += L_MOV_BYTE_PTR;
+                        i += Length_MOV_BYTE_PTR;
                     } else {
+                        IsMain = data[i] == MOV_ESI;
+                            
                         break;
                     }
                 }
             }
             else
-                for (int fnd = 0, pt = 0; ;) {
-                    if (pt >= 128) {
+                for (int fnd = 0, Postion = 0; ;) {
+                    if (Postion >= 128) {
                         break;
                     }
                     if (fnd == 0) {
                         fnd = 1;
-                        ALVAL[ind] = int32(new byte[] { Alg[pt + 1], Alg[pt + 2], Alg[pt + 3], Alg[pt + 4] });
-                        pt += L_MOV_AL;
+                        KeyBytes[ind] = int32(new byte[] { data[Postion + 1], data[Postion + 2], data[Postion + 3], data[Postion + 4] });
+                        Postion += Length_MOV_AL;
                     }
                     else {
                         fnd = 0;
-                        if (Alg[pt] == MOV_ESI) {
-                            pt += L_MOV_ESI;
-                            fnd = Alg[pt] == MOV_AL ? 0 : 1;
+                        if (data[Postion] == MOV_ESI) {
+                            Postion += Length_MOV_ESI;
+                            fnd = data[Postion] == MOV_AL ? 0 : 1;
                         }
-                        EBPVAL[ind] = int8(Alg[pt + 2]);
+                        KeyOrder[ind] = int8(data[Postion + 2]);
                         ind++;
-                        pt += L_MOV_BYTE_PTR;
+                        Postion += Length_MOV_BYTE_PTR;
                     }
                 }
             int[] Offsets = new int[16];
             for (int i = 0; i < processed.Length; i++) {
                 int minval = -1;
-                for (ind = 0; ind < EBPVAL.Length; ind++) {
+                for (ind = 0; ind < KeyOrder.Length; ind++) {
                     if (minval < 0) {
                         minval = 0;
                         while (processed[minval])
                             minval++;
                     }
-                    else if (EBPVAL[ind] < EBPVAL[minval] && !processed[ind])
+                    else if (KeyOrder[ind] < KeyOrder[minval] && !processed[ind])
                         minval = ind;
                 }
-                Offsets[i] = ALVAL[minval];
+                Offsets[i] = KeyBytes[minval];
                 processed[minval] = true;
             }
 
             byte[] key = new byte[16];
             for (ind = 0; ind < key.Length; ind++) {
                 int off = Offsets[ind];
-                if (!OldCode) {
+                if (!OldCode) {//My Algoritm to detect the old key algoritm Auto-Read all values...
                     if (off > 0)
                         off -= Base;
                     int b = -1;
@@ -270,12 +271,12 @@ namespace SiglusSceneManager {
                         Memory.Seek(off, SeekOrigin.Begin);
                         b = Memory.ReadByte();
                     }
-                    key[ind] = b < 0 ? (byte)0 : (byte)b;
+                    key[ind] = b < 0 ? (byte)0 : (byte)b;//dont allow invalid bytes
                 }
                 else
                     key[ind] = (byte)off;
             }
-            return new Key(key, Alg[128] >= 0xFD);
+            return new Key(key, IsMain);
         }
 
         internal static string ParseBytes(byte[] arr) {
@@ -289,62 +290,62 @@ namespace SiglusSceneManager {
         }
         public int FindKeys() {
             Memory.Seek(0, SeekOrigin.Begin);
-            byte[] buff = new byte[300];
+            byte[] Data = new byte[300];
             while (true) {
                 if (Memory.Position >= Memory.Length)
                     break;
                 //1248855 - hana
                 //1247333 - ab
-                int pointer = (int)Memory.Position;
-                Memory.Read(buff, 0, buff.Length);
-                for (int i = 0; i < buff.Length; i++)
-                    if (buff[i] == MOV_AL) {
-                        if (i > 0) {
-                            Memory.Seek(pointer + i, SeekOrigin.Begin);
+                int Position = (int)Memory.Position;
+                Memory.Read(Data, 0, Data.Length);
+                for (int i = 0; i < Data.Length; i++)
+                    if (Data[i] == MOV_AL) {
+                        if (i > 0) {//To don't register a wrong position update the stream to for position
+                            Memory.Seek(Position + i, SeekOrigin.Begin);
                             goto resume;
                         }
-                        for (int fnd = 0, pt = 0; ;) {
-                            if (i + pt >= 128) {
-                                Register((int)pointer + i);
+                        for (int Switch = 0, pos = 0; ;) {
+                            if (pos >= 128) {//Algoritm have 128bytes length... if is bigger than and the this for don't break, register as possible key...
+                                Register(Position);
                                 i += 128;
                                 break;
                             }
-                            if (fnd == 0) {
-                                fnd = 1;
-                                pt += L_MOV_AL;
-                                if (!(buff[i + pt] != MOV_BYTE_PTR || buff[i + pt] != MOV_ESI) && i + pt < 128)
-                                    break;
+                            if (Switch == 0) {
+                                Switch = 1;
+                                pos += Length_MOV_AL;
+                                if (!(Data[pos] != MOV_BYTE_PTR || Data[pos] != MOV_ESI) && pos < 128) //If don't is a MOV command and the position is less than 128 break
+                                    break;//Only can have another command if the position is bigger than 128 (if end the algoritm)
                             }
                             else {
-                                fnd = 0;
-                                pt += buff[i + pt] == MOV_BYTE_PTR ? L_MOV_BYTE_PTR : L_MOV_ESI;
-                                if (buff[i + pt] != MOV_AL && i + pt < 128)
+                                Switch = 0;
+                                pos += Data[pos] == MOV_BYTE_PTR ? Length_MOV_BYTE_PTR : Length_MOV_ESI;//jump the correct position
+                                if (Data[pos] != MOV_AL && pos < 128)
                                     break;
                             }
                         }
                     }
                     else {
-                        if (buff[i] == MOV_BYTE_PTR || buff[i] == 0x0F) {
-                            if (i > 0) {
-                                Memory.Seek(pointer + i, SeekOrigin.Begin);
+                        if (Data[i] == MOV_BYTE_PTR || Data[i] == 0x0F) {
+                            if (i > 0) {//To don't register a wrong position update the stream to for position
+                                Memory.Seek(Position + i, SeekOrigin.Begin);
                                 goto resume;
                             }
-                            for (int fnd = 0, pt = 0; ;) {
-                                if (pt >= 204 || fnd >= 0xF) {
-                                    Register(pointer + i);
-                                    i += (int)pt;
+                            for (int MovCnt = 0, pos = 0; ;) {
+                                if (pos >= 204 || MovCnt >= 0xF) {//if the Algoritm have more than 204 bytes or have more than 15 MOV's command, register as possible key...
+                                    Register(Position);
+                                    i += pos;
                                     break;
                                 }
-                                if (isLongMOV(buff[i + pt + 1])) {
-                                    pt += 7;
-                                    fnd++;
+                                if (isLongMOV(Data[pos + 1])) { //if is a MOV with 7 bytes length
+                                    pos += 7;
+                                    MovCnt++;
                                 }
-                                else if (isMOVZX(buff[i + pt], buff[i + pt + 1], buff[i + pt + 2])) {
-                                    pt += 7;
+                                else if (isMOVZX(Data[pos], Data[pos + 1], Data[pos + 2])) { //if is a MOVZX (7 bytes length)
+                                    pos += 7;
                                 }
-                                else if (buff[i + pt] == MOV_BYTE_PTR) {
-                                    pt += L_MOV_BYTE_PTR;
-                                    fnd++;
+                                else if (Data[pos] == MOV_BYTE_PTR) { //if is a small MOV
+                                    pos += Length_MOV_BYTE_PTR;
+                                    MovCnt++;
                                 }
                                 else
                                     break;
@@ -396,6 +397,8 @@ namespace SiglusSceneManager {
         public string String { get { return KeyFinder.ParseBytes(Bytes); } }
     }
 
+
+    //My fake 32bits Register Algoritm (work with any name.... but i use original ASM Registers)
     internal class Registers {
         internal byte[] this[string reg] {
             get
