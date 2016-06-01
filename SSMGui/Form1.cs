@@ -76,9 +76,11 @@ namespace SSMGui {
                 string MSG = "Valid Keys to this dump:\n";
                 for (int i = 0; i < total; i++) {
                     Key Pass = KF.GetKey(i);
+                    if (Pass.Corrupted)
+                        continue;
                     string key = Pass.String;
-                    MSG += Pass.Main ? "Looks Main key => " + key : key;
-                    MSG += "\n============================================\n";
+                    MSG += Pass.Main ? "Looks Correct: " + key : "Try: " + key;
+                    MSG += "\n---------------------------\n";
                 }
                 MSG += "Press CTRL + C to Copy";
                 MessageBox.Show(MSG, "Test your lucky - Unstable SiglusEngine Key Finder - Work only with newer Games", MessageBoxButtons.OK, MessageBoxIcon.Information);

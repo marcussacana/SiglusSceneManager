@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 
 namespace SiglusSceneManager {
     public class KeyFinder {
@@ -29,7 +26,7 @@ namespace SiglusSceneManager {
 
         //A0 ? ? ? ?
         //MOV AL, OFF;
-        
+
         /*
         MOVZX 0F B6 + 
         0D = ECX
@@ -41,38 +38,6 @@ namespace SiglusSceneManager {
         3D = EDI
         + DWORD;
         */
-        private string ParseRegister(byte b) {
-            switch (b) {
-                //MOVZX - Table
-                case 0x5:
-                    return "EAX";
-                case 0xD:
-                    return "ECX";
-                case 0x15:
-                    return "EDX";
-                case 0x1D:
-                    return "EBX";
-                case 0x25:
-                    return "ESP";
-                case 0x2D:
-                    return "EBP";
-                case 0x35:
-                    return "ESI";
-                case 0x3D:
-                    return "EDI";
-                //MOV Long Table
-                case 0x84:
-                    return "AL";
-                case 0x9C:
-                    return "BL";
-                case 0x8C:
-                    return "CL";
-                case 0x94:
-                    return "DL";
-                default:
-                    return "Other";
-            }
-        }
 
         /*
          E?? = 32Bits == 0x11223344
@@ -90,83 +55,153 @@ namespace SiglusSceneManager {
         MOV OFFSET, Register;
         */
 
-        private string ParseMOV(byte b) {
+        private Register[] ParseMOV(byte b) {
+            Register[] Result = new Register[2];
+            //0 = Dest
+            //1 = Source
+            #region switch
             switch (b) {
-                //MOV Shor Table
+                //MOV Short Table
                 case 0x45:
-                    return "EBP,AL";
+                    Result[0] = Register.EBP;
+                    Result[1] = Register.AL;
+                    break;
                 case 0x46:
-                    return "ESI,AL";
+                    Result[0] = Register.ESI;
+                    Result[1] = Register.AL;
+                    break;
                 case 0x47:
-                    return "EDI,AL";
+                    Result[0] = Register.EDI;
+                    Result[1] = Register.AL;
+                    break;
                 case 0x43:
-                    return "EBX,AL";
+                    Result[0] = Register.EBX;
+                    Result[1] = Register.AL;
+                    break;
                 case 0x42:
-                    return "EDX,AL";
+                    Result[0] = Register.EDX;
+                    Result[1] = Register.AL;
+                    break;
                 case 0x41:
-                    return "ECX,AL";
+                    Result[0] = Register.ECX;
+                    Result[1] = Register.AL;
+                    break;
                 case 0x40:
-                    return "EAX,AL";
+                    Result[0] = Register.EAX;
+                    Result[1] = Register.AL;
+                    break;
                 case 0x48:
-                    return "EAX,CL";
+                    Result[0] = Register.EAX;
+                    Result[1] = Register.CL;
+                    break;
                 case 0x49:
-                    return "ECX,CL";
+                    Result[0] = Register.ECX;
+                    Result[1] = Register.CL;
+                    break;
                 case 0x4A:
-                    return "EDX,CL";
+                    Result[0] = Register.EDX;
+                    Result[1] = Register.CL;
+                    break;
                 case 0x4B:
-                    return "EBX,CL";
+                    Result[0] = Register.EBX;
+                    Result[1] = Register.CL;
+                    break;
                 case 0x4D:
-                    return "EBP,CL";
+                    Result[0] = Register.EBP;
+                    Result[1] = Register.CL;
+                    break;
                 case 0x4E:
-                    return "ESI,CL";
+                    Result[0] = Register.ESI;
+                    Result[1] = Register.CL;
+                    break;
                 case 0x4F:
-                    return "EDI,CL";
+                    Result[0] = Register.EDI;
+                    Result[1] = Register.CL;
+                    break;
                 case 0x50:
-                    return "EAX,DL";
+                    Result[0] = Register.EAX;
+                    Result[1] = Register.DL;
+                    break;
                 case 0x51:
-                    return "ECX,DL";
+                    Result[0] = Register.ECX;
+                    Result[1] = Register.DL;
+                    break;
                 case 0x52:
-                    return "EDX,DL";
+                    Result[0] = Register.EDX;
+                    Result[1] = Register.DL;
+                    break;
                 case 0x53:
-                    return "EBX,DL";
+                    Result[0] = Register.EBX;
+                    Result[1] = Register.DL;
+                    break;
                 case 0x55:
-                    return "EBP,DL";
+                    Result[0] = Register.EBP;
+                    Result[1] = Register.DL;
+                    break;
                 case 0x56:
-                    return "ESI,DL";
+                    Result[0] = Register.ESI;
+                    Result[1] = Register.DL;
+                    break;
                 case 0x57:
-                    return "EDI,DL";
+                    Result[0] = Register.EDI;
+                    Result[1] = Register.DL;
+                    break;
                 case 0x58:
-                    return "EAX,BL";
+                    Result[0] = Register.EAX;
+                    Result[1] = Register.BL;
+                    break;
                 case 0x59:
-                    return "ECX,BL";
+                    Result[0] = Register.ECX;
+                    Result[1] = Register.BL;
+                    break;
                 case 0x5A:
-                    return "EDX,BL";
+                    Result[0] = Register.EDX;
+                    Result[1] = Register.BL;
+                    break;
                 case 0x5B:
-                    return "EBX,BL";
+                    Result[0] = Register.EBX;
+                    Result[1] = Register.BL;
+                    break;
                 case 0x5D:
-                    return "EBP,BL";
+                    Result[0] = Register.EBP;
+                    Result[1] = Register.BL;
+                    break;
                 case 0x5E:
-                    return "ESI,BL";
+                    Result[0] = Register.ESI;
+                    Result[1] = Register.BL;
+                    break;
                 case 0x5F:
-                    return "EDI,BL";
+                    Result[0] = Register.EDI;
+                    Result[1] = Register.BL;
+                    break;
                 default:
-                    return "Unk,Unk";
+                    Result[0] = Register.Unk;
+                    Result[1] = Register.Unk;
+                    break;
             }
+            #endregion
+            return Result;
         }
         private Registers REGS = new Registers();
         public Key GetKey(int ID) {
             if (ID > founds.Length)
                 throw new Exception("Invalid ID");
+
             byte[] data = new byte[300];
             int pos = founds[ID];
             Memory.Seek(pos, SeekOrigin.Begin);
             Memory.Read(data, 0, data.Length);
+
             bool OldCode = false;
+
             int[] KeyBytes = new int[16];
             int[] KeyOrder = new int[16];
             bool[] processed = new bool[16];
             int ind = 0;
+
             bool IsMain = data[128] >= 0xFD;
+            bool Corrupted = false;
+
             if (isLongMOV(data[0]) || isMOVZX(data[0], data[1], data[2])) {
                 int findStart = pos;
                 while (true) {//In this while he try find for the real First MOVZX, my "detection" Algoritm can return a wrong position
@@ -188,14 +223,14 @@ namespace SiglusSceneManager {
                     }
                     if (isLongMOV(data[i+1])) {
                         int val = int32(new byte[] { data[i + 3], data[i + 4], data[i + 5], data[i + 6] });
-                        string Register = ParseRegister(data[i + 1]);
+                        Register Register = (Register)Enum.ToObject(typeof(Register), data[i + 1]);
                         KeyOrder[ind] = val;
                         byte[] DW = REGS[Register];
                         KeyBytes[ind] = DW[0];
                         ind++;
                         i += 7;
                     } else if (isMOVZX(data[i], data[i + 1], data[i + 2])) {
-                        string Register = ParseRegister(data[i + 2]);
+                        Register Register = (Register)Enum.ToObject(typeof(Register), data[i + 2]);
                         int off = int32(new byte[] { data[i + 3], data[i + 4], data[i + 5], data[i + 6] });
                         if (off > 0)
                             off -= Base;
@@ -209,9 +244,9 @@ namespace SiglusSceneManager {
                         REGS[Register] = new byte[] { 0x0, 0x0, 0x0, b < 0 ? (byte)0 : (byte)b};
                         i += 7;
                     } else if (data[i] == MOV_BYTE_PTR){
-                        string[] reg = ParseMOV(data[i + 1]).Split(',');
-                        string Source = reg[1];
-                        //string Target = reg[0];
+                        Register[] regs = ParseMOV(data[i + 1]);
+                        Register Source = regs[1];
+                        //Register Target = regs[0];
                         KeyBytes[ind] = REGS[Source][0];
                         KeyOrder[ind] = int8(data[i + 2]);
                         ind++;
@@ -256,6 +291,8 @@ namespace SiglusSceneManager {
                     else if (KeyOrder[ind] < KeyOrder[minval] && !processed[ind])
                         minval = ind;
                 }
+                if (!Corrupted && KeyBytes[minval] < 0 && OldCode)
+                    Corrupted = true;
                 Offsets[i] = KeyBytes[minval];
                 processed[minval] = true;
             }
@@ -271,12 +308,14 @@ namespace SiglusSceneManager {
                         Memory.Seek(off, SeekOrigin.Begin);
                         b = Memory.ReadByte();
                     }
+                    if (!Corrupted && b < 0)
+                        Corrupted = true;
                     key[ind] = b < 0 ? (byte)0 : (byte)b;//dont allow invalid bytes
                 }
                 else
                     key[ind] = (byte)off;
             }
-            return new Key(key, IsMain);
+            return new Key() { Bytes = key, Main = IsMain, Corrupted = Corrupted };
         }
 
         internal static string ParseBytes(byte[] arr) {
@@ -306,7 +345,7 @@ namespace SiglusSceneManager {
                         }
                         for (int Switch = 0, pos = 0; ;) {
                             if (pos >= 128) {//Algoritm have 128bytes length... if is bigger than and the this for don't break, register as possible key...
-                                Register(Position);
+                                Save(Position);
                                 i += 128;
                                 break;
                             }
@@ -332,7 +371,7 @@ namespace SiglusSceneManager {
                             }
                             for (int MovCnt = 0, pos = 0; ;) {
                                 if (pos >= 204 || MovCnt >= 0xF) {//if the Algoritm have more than 204 bytes or have more than 15 MOV's command, register as possible key...
-                                    Register(Position);
+                                    Save(Position);
                                     i += pos;
                                     break;
                                 }
@@ -369,7 +408,7 @@ namespace SiglusSceneManager {
             return ((h >= 8 && h <= 0xB) && (l == 0x4 || l == 0xC));
         }
         private int[] founds = new int[0];
-        private void Register(int pos) {
+        private void Save(int pos) {
             int[] tmp = new int[founds.Length + 1];
             founds.CopyTo(tmp, 0);
             tmp[founds.Length] = pos;
@@ -387,13 +426,9 @@ namespace SiglusSceneManager {
     }
 
     public class Key {
-        internal Key(byte[] key, bool MainKey) {
-            Bytes = key;
-            Main = MainKey;
-        }
-
-        public bool Main = false;
-        public byte[] Bytes { get; private set; }
+        public bool Corrupted { get; internal set; } = false;
+        public bool Main { get; internal set; } = false;
+        public byte[] Bytes { get; internal set; }
         public string String { get { return KeyFinder.ParseBytes(Bytes); } }
     }
 
@@ -408,6 +443,16 @@ namespace SiglusSceneManager {
             set
             {
                 setData(reg, value);
+            }
+        }
+        internal byte[] this[Register reg] {
+            get
+            {
+                return getData(reg.ToString());
+            }
+            set
+            {
+                setData(reg.ToString(), value);
             }
         }
         private void setData(string Register, byte[] DW) {

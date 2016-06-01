@@ -1,4 +1,4 @@
-### SiglusSceneManager ~1.4.2
+### SiglusSceneManager ~1.5
 [![Build Status](https://travis-ci.org/ForumHulp/pageaddon.svg?branch=master)](http://katawa.url.ph)
 
 A DLL Library tool to allow you write your own string editor of the SiglusEngine Scripts in C#
