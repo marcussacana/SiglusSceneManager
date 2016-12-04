@@ -29,10 +29,10 @@
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.extraToolsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.findSiglusEngineKeyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
-            this.extraToolsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.getSiglusKey2ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -83,6 +83,21 @@
             this.saveToolStripMenuItem.Text = "Save";
             this.saveToolStripMenuItem.Click += new System.EventHandler(this.saveToolStripMenuItem_Click);
             // 
+            // extraToolsToolStripMenuItem
+            // 
+            this.extraToolsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.findSiglusEngineKeyToolStripMenuItem});
+            this.extraToolsToolStripMenuItem.Name = "extraToolsToolStripMenuItem";
+            this.extraToolsToolStripMenuItem.Size = new System.Drawing.Size(181, 26);
+            this.extraToolsToolStripMenuItem.Text = "Extra Tools";
+            // 
+            // findSiglusEngineKeyToolStripMenuItem
+            // 
+            this.findSiglusEngineKeyToolStripMenuItem.Name = "findSiglusEngineKeyToolStripMenuItem";
+            this.findSiglusEngineKeyToolStripMenuItem.Size = new System.Drawing.Size(228, 26);
+            this.findSiglusEngineKeyToolStripMenuItem.Text = "Find SiglusEngine Key";
+            this.findSiglusEngineKeyToolStripMenuItem.Click += new System.EventHandler(this.findSiglusEngineKeyToolStripMenuItem_Click);
+            // 
             // openFileDialog1
             // 
             this.openFileDialog1.DefaultExt = "ss";
@@ -96,21 +111,6 @@
             this.saveFileDialog1.Filter = "All SiglusScene Files | *.ss";
             this.saveFileDialog1.Title = "Select a Siglus Scene";
             this.saveFileDialog1.FileOk += new System.ComponentModel.CancelEventHandler(this.saveFileDialog1_FileOk);
-            // 
-            // extraToolsToolStripMenuItem
-            // 
-            this.extraToolsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.getSiglusKey2ToolStripMenuItem});
-            this.extraToolsToolStripMenuItem.Name = "extraToolsToolStripMenuItem";
-            this.extraToolsToolStripMenuItem.Size = new System.Drawing.Size(181, 26);
-            this.extraToolsToolStripMenuItem.Text = "Extra Tools";
-            // 
-            // getSiglusKey2ToolStripMenuItem
-            // 
-            this.getSiglusKey2ToolStripMenuItem.Name = "getSiglusKey2ToolStripMenuItem";
-            this.getSiglusKey2ToolStripMenuItem.Size = new System.Drawing.Size(181, 26);
-            this.getSiglusKey2ToolStripMenuItem.Text = "Get Siglus Key";
-            this.getSiglusKey2ToolStripMenuItem.Click += new System.EventHandler(this.getSiglusKey2ToolStripMenuItem_Click);
             // 
             // Form1
             // 
@@ -138,7 +138,7 @@
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
         private System.Windows.Forms.SaveFileDialog saveFileDialog1;
         private System.Windows.Forms.ToolStripMenuItem extraToolsToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem getSiglusKey2ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem findSiglusEngineKeyToolStripMenuItem;
     }
 }
 

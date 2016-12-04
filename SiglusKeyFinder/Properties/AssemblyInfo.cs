@@ -5,13 +5,13 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("SiglusSceneManager")]
-[assembly: AssemblyDescription("A .NET Library to translate .ss Files from SiglusEngine")]
+[assembly: AssemblyTitle("SiglusKeyFinder")]
+[assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("VNX+")]
-[assembly: AssemblyProduct("SiglusSceneManager - By Marcussacana")]
-[assembly: AssemblyCopyright("Copyright © VNX+ 2016")]
-[assembly: AssemblyTrademark("VNX+")]
+[assembly: AssemblyCompany("")]
+[assembly: AssemblyProduct("SiglusKeyFinder")]
+[assembly: AssemblyCopyright("Copyright ©  2016")]
+[assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("b3d4dff2-530d-43a5-8a53-7cb3e60391a3")]
+[assembly: Guid("fb2b63fe-b83c-4a27-86f0-aa67f16956fd")]
 
 // Version information for an assembly consists of the following four values:
 //
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.65.0.0")]
-[assembly: AssemblyFileVersion("1.65.0.0")]
+[assembly: AssemblyVersion("1.28.0.0")]
+[assembly: AssemblyFileVersion("1.28.0.0")]

@@ -51,43 +51,23 @@ namespace SSMGui {
             if (e.KeyChar == '\r' || e.KeyChar == '\n') {
                 listBox1.Items[listBox1.SelectedIndex] = textBox1.Text;
             }
+        }    
+        private void findSiglusEngineKeyToolStripMenuItem_Click(object sender, EventArgs e) {
+            int PID = GetPID();
+            if (PID != -1) {
+                SiglusKeyFinder.KeyFinder.Key[] Keys = SiglusKeyFinder.KeyFinder.ReadProcess(PID);
+                string MSG = "Keys found:\n";
+                foreach (SiglusKeyFinder.KeyFinder.Key Key in Keys)
+                    MSG += Key.KeyStr + "\n---------------------------\n";
+                MSG += "Press CTRL + C to Copy";
+                MessageBox.Show(MSG, "SiglusKeyFinder - By Marcussacana", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
         }
 
-        private void getSiglusKey2ToolStripMenuItem_Click(object sender, EventArgs e) {
-            MessageBox.Show("Select a memory dump from the game, use the \"ProcessDump\" to dump a compatible binary and you can't rename dumped files...\n\nhttp://split-code.com/processdump.html\n\nCompatible only with SiglusEngine v1.1 or better \nPress CTRL + C to copy", "Unstable - Siglus Key Discovery Tool");
-            OpenFileDialog fd = new OpenFileDialog();
-            fd.Filter = "All Executables|*.exe";
-            fd.Title = "Select a memory dump from siglus engine game";
-            DialogResult dr = fd.ShowDialog();
-            if (dr == DialogResult.OK) {
-                string fname = System.IO.Path.GetFileNameWithoutExtension(fd.FileName);
-                int Base = 0;
-                //SiglusEngine_exe_SiglusEngine.exe_BaseOffset
-                if (fname.Contains(".") && fname.Contains("_")) {
-                    string[] arr = fname.Split('_');
-                    try {
-                        Base = int.Parse(arr[arr.Length - 1], System.Globalization.NumberStyles.HexNumber);
-                    }
-                    catch { goto erro; }
-
-                } else goto erro;
-                KeyFinder KF = new KeyFinder(fd.FileName, Base);
-                int total = KF.FindKeys();
-                string MSG = "Valid Keys to this dump:\n";
-                for (int i = 0; i < total; i++) {
-                    Key Pass = KF.GetKey(i);
-                    if (Pass.Corrupted)
-                        continue;
-                    string key = Pass.String;
-                    MSG += Pass.Main ? "Looks Correct: " + key : "Try: " + key;
-                    MSG += "\n---------------------------\n";
-                }
-                MSG += "Press CTRL + C to Copy";
-                MessageBox.Show(MSG, "Test your lucky - Unstable SiglusEngine Key Finder - Work only with newer Games", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-            return;
-        erro:;
-            MessageBox.Show("ERROR - You rename the process dump??", "Unstable - Srry");
+        private int GetPID() {
+            ProcSel form = new ProcSel();
+            form.ShowDialog();
+            return form.PID;
         }
     }
 }

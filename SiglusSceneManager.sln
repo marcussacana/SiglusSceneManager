@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SiglusSceneManager", "SiglusSceneManager\SiglusSceneManager.csproj", "{B3D4DFF2-530D-43A5-8A53-7CB3E60391A3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SSMGui", "SSMGui\SSMGui.csproj", "{8390697E-A5E5-4422-AF3C-C321300EB4DC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SiglusKeyFinder", "SiglusKeyFinder\SiglusKeyFinder.csproj", "{FB2B63FE-B83C-4A27-86F0-AA67F16956FD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{8390697E-A5E5-4422-AF3C-C321300EB4DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8390697E-A5E5-4422-AF3C-C321300EB4DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8390697E-A5E5-4422-AF3C-C321300EB4DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FB2B63FE-B83C-4A27-86F0-AA67F16956FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FB2B63FE-B83C-4A27-86F0-AA67F16956FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FB2B63FE-B83C-4A27-86F0-AA67F16956FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FB2B63FE-B83C-4A27-86F0-AA67F16956FD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
