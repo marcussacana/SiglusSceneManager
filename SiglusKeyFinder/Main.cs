@@ -293,7 +293,8 @@ namespace SiglusKeyFinder
                 get {
                     string Hex = string.Empty;
                     for (int i = 0; i < KEY.Length; i++) {
-                        Hex += "0x" + KEY[i].ToString("X") + ", ";
+						string H = KEY[i].ToString("X");
+                        Hex += (H.Length == 1 ? "0x0" : "0x") + H + ", ";
                     }
                     return Hex.Substring(0, Hex.Length - 2);
                 }

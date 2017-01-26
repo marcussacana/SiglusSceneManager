@@ -40,7 +40,7 @@ namespace SSMGui {
         private void listBox1_SelectedIndexChanged(object sender, EventArgs e) {
             try {
                 this.Text = "id: " + listBox1.SelectedIndex;
-                textBox1.Text = listBox1.Items[listBox1.SelectedIndex].ToString();
+                textBox1.Text = listBox1.Items[listBox1.SelectedIndex].ToString().Replace("\n", "\\n");
             }
             catch {
 
@@ -49,7 +49,7 @@ namespace SSMGui {
 
         private void textBox1_KeyPress(object sender, KeyPressEventArgs e) {
             if (e.KeyChar == '\r' || e.KeyChar == '\n') {
-                listBox1.Items[listBox1.SelectedIndex] = textBox1.Text;
+                listBox1.Items[listBox1.SelectedIndex] = textBox1.Text.Replace("\\n", "\n");
             }
         }    
         private void findSiglusEngineKeyToolStripMenuItem_Click(object sender, EventArgs e) {
@@ -68,6 +68,10 @@ namespace SSMGui {
             ProcSel form = new ProcSel();
             form.ShowDialog();
             return form.PID;
+        }
+
+        private void textBox1_TextChanged(object sender, EventArgs e) {
+
         }
     }
 }

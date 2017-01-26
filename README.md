@@ -1,4 +1,4 @@
-### SiglusSceneManager ~1.6
+### SiglusSceneManager ~1.7
 [![Build Status](https://travis-ci.org/ForumHulp/pageaddon.svg?branch=master)](http://vnx.uvnworks.com)
 
 A DLL Library tool to allow you write your own string editor of the SiglusEngine Scripts in C#

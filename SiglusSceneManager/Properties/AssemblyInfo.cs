@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("VNX+")]
 [assembly: AssemblyProduct("SiglusSceneManager - By Marcussacana")]
-[assembly: AssemblyCopyright("Copyright © VNX+ 2016")]
+[assembly: AssemblyCopyright("Copyright © VNX+ 2016-2017")]
 [assembly: AssemblyTrademark("VNX+")]
 [assembly: AssemblyCulture("")]
 

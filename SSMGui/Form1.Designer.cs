@@ -57,6 +57,7 @@
             this.textBox1.Name = "textBox1";
             this.textBox1.Size = new System.Drawing.Size(512, 22);
             this.textBox1.TabIndex = 1;
+            this.textBox1.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
             this.textBox1.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBox1_KeyPress);
             // 
             // contextMenuStrip1
@@ -67,19 +68,19 @@
             this.saveToolStripMenuItem,
             this.extraToolsToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(182, 110);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(158, 82);
             // 
             // openToolStripMenuItem
             // 
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
-            this.openToolStripMenuItem.Size = new System.Drawing.Size(181, 26);
+            this.openToolStripMenuItem.Size = new System.Drawing.Size(157, 26);
             this.openToolStripMenuItem.Text = "Open";
             this.openToolStripMenuItem.Click += new System.EventHandler(this.openToolStripMenuItem_Click);
             // 
             // saveToolStripMenuItem
             // 
             this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
-            this.saveToolStripMenuItem.Size = new System.Drawing.Size(181, 26);
+            this.saveToolStripMenuItem.Size = new System.Drawing.Size(157, 26);
             this.saveToolStripMenuItem.Text = "Save";
             this.saveToolStripMenuItem.Click += new System.EventHandler(this.saveToolStripMenuItem_Click);
             // 
@@ -88,7 +89,7 @@
             this.extraToolsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.findSiglusEngineKeyToolStripMenuItem});
             this.extraToolsToolStripMenuItem.Name = "extraToolsToolStripMenuItem";
-            this.extraToolsToolStripMenuItem.Size = new System.Drawing.Size(181, 26);
+            this.extraToolsToolStripMenuItem.Size = new System.Drawing.Size(157, 26);
             this.extraToolsToolStripMenuItem.Text = "Extra Tools";
             // 
             // findSiglusEngineKeyToolStripMenuItem
