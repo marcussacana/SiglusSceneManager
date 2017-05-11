@@ -5,13 +5,12 @@ using System.Text;
 namespace SiglusSceneManager {
     public class SSManager {
         byte[] Scene;
-        public string[] Strings;
         private uint FirstPos;
         public SSManager(byte[] Script) {
             Scene = Script;
             FirstPos = (uint)Scene.Length;
         }
-        public void Import() {
+        public string[] Import() {
             Entry OffsetTable = GetEntry(0xC);
             Entry StringTable = GetEntry(0x14);
             string[] Content = new string[StringTable.Length];
@@ -25,12 +24,12 @@ namespace SiglusSceneManager {
                 byte[] Str = GetRegion(pos, StrEntry.Length * 2); //*2 Because is UFT-16
                 Content[i] = Encoding.Unicode.GetString(XOR(Str, i));
             }
-            Strings = Content;
+            return Content;
         }
 
         private byte[] Signature = new byte[] { 0x00, 0x53, 0x69, 0x67, 0x6C, 0x75, 0x73, 0x53, 0x63, 0x72, 0x69, 0x70, 0x74, 0x4D, 0x61, 0x6E, 0x61, 0x67, 0x65, 0x72 };
 
-        public byte[] Export() {
+        public byte[] Export(string[] Strings) {
             byte[] Base = HaveSignature ? RemoveTable(Scene) : Scene;
             Entry OffsetTable = GetEntry(0xC);
             GetDWord((uint)Base.Length).CopyTo(Base, 0x14);

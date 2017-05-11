@@ -13,9 +13,8 @@ namespace SSMGui {
         private void openFileDialog1_FileOk(object sender, CancelEventArgs e) {
             byte[] file = System.IO.File.ReadAllBytes(openFileDialog1.FileName);
             Script = new SSManager(file);
-            Script.Import();
             listBox1.Items.Clear();
-            foreach (string str in Script.Strings)
+            foreach (string str in Script.Import())
                 listBox1.Items.Add(str);
         }
 
@@ -31,8 +30,7 @@ namespace SSMGui {
             string[] strs = new string[listBox1.Items.Count];
             for (int i = 0; i < strs.Length; i++)
                 strs[i] = listBox1.Items[i].ToString();
-            Script.Strings = strs;
-            byte[] newscript = Script.Export();
+            byte[] newscript = Script.Export(strs);
             System.IO.File.WriteAllBytes(saveFileDialog1.FileName, newscript);
             MessageBox.Show("Script Saved.", "SSMGui");
         }
