@@ -284,7 +284,8 @@ namespace SiglusKeyFinder
         }
 
         public class Key {
-            byte[] KEY;
+            public byte[] KEY { get; private set; }
+
             internal Key(byte[] KEY) {
                 this.KEY = KEY;
             }
