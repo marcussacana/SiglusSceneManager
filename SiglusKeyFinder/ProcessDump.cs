@@ -5,12 +5,21 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Windows.Forms;
 
 namespace SiglusKeyFinder {
     class ProcessDump {
         internal static string FILE;
         internal static uint BASEADDRESS;
-        internal static Stream OpenProcess(int PID) {
+        internal static Stream OpenProcess(int PID, bool CrashIfCantDump = false) {
+            while (!CheckRequeriments()) {
+                if (CrashIfCantDump)
+                    throw new Exception("VS15 C++ Redist not installed.");
+
+                DialogResult Result = MessageBox.Show("Install the VS2015 Redist Packget before continue", "Requried Library Not Installed", MessageBoxButtons.RetryCancel);
+                if (Result == DialogResult.Cancel)
+                    throw new Exception("VS15 C++ Redist not installed.");
+            }
             string WorkDir = Path.GetTempPath() + "PDWDIR-" + new Random().Next(100, 999);
             if (!Directory.Exists(WorkDir))
                 Directory.CreateDirectory(WorkDir);
@@ -44,6 +53,14 @@ namespace SiglusKeyFinder {
             Directory.Delete(WorkDir, true);
             FILE = TMP;
             return new StreamReader(TMP).BaseStream;
+        }
+
+        private static bool CheckRequeriments() {
+            const string DLL = "msvcp140.dll";
+            string Dir = Environment.GetFolderPath(Environment.SpecialFolder.System) + "\\";
+            if (!File.Exists(Dir + DLL))
+                return false;
+            return true;
         }
 
         private static string GetTmp(string Resource) {
