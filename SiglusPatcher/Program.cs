@@ -111,7 +111,7 @@ namespace SiglusPatcher {
             while (File.Exists(OutPath))
                 try { File.Delete(OutPath); } catch {};
 
-            Stream ResStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("SiglusDebugger.Resources." + Resource);
+            Stream ResStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("SiglusPatcher.Resources." + Resource);
 
             Stream Output = new StreamWriter(OutPath).BaseStream;
             ResStream.CopyTo(Output);
@@ -121,8 +121,8 @@ namespace SiglusPatcher {
 
         private static Version GetFileVersion(string exe) {
             FileVersionInfo Info = FileVersionInfo.GetVersionInfo(exe);
-            string[] Version = Info.FileVersion.Split('.');
-            return new Version(int.Parse(Version[0]), int.Parse(Version[1]), int.Parse(Version[2]), int.Parse(Version[3]));
+            string[] Version = Info.FileVersion.Replace(",", ".").Split('.');
+            return new Version(int.Parse(Version[0].Trim()), int.Parse(Version[1].Trim()), int.Parse(Version[2].Trim()), int.Parse(Version[3].Trim()));
         }
 
         private static bool EqualsAt(byte[] Data, byte[] DataToCompare, uint At) {
