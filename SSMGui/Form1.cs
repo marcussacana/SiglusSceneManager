@@ -10,11 +10,25 @@ namespace SSMGui {
             MessageBox.Show("This GUI don't is a stable translation tool, this program is a Demo for my dll, the \"SiglusSceneManager.dll\" it's a opensoruce project to allow you make your program to edit any script from SiglusEngine\n\nHow to use:\n*Rigth Click in the window to open or save the file\n*Select the string in listbox and edit in the text box\n*Press enter to update the string\n\nThis program is unstable!");
         }
         public SSManager Script;
+        public DBS DBString;
+
+        bool DBMode = false;
         private void openFileDialog1_FileOk(object sender, CancelEventArgs e) {
             byte[] file = System.IO.File.ReadAllBytes(openFileDialog1.FileName);
-            Script = new SSManager(file);
+            string[] Strs;
+            if (openFileDialog1.FilterIndex == 0) {
+                Script = new SSManager(file);
+                Strs = Script.Import();
+                DBMode = false;
+            } else {
+                DBString = new DBS(file);
+                Strs = DBString.Import();
+                DBMode = true;
+            }
+
+
             listBox1.Items.Clear();
-            foreach (string str in Script.Import())
+            foreach (string str in Strs)
                 listBox1.Items.Add(str);
         }
 
@@ -23,6 +37,7 @@ namespace SSMGui {
         }
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e) {
+            saveFileDialog1.FilterIndex = (DBMode ? 1 : 0);
             saveFileDialog1.ShowDialog();
         }
 
@@ -30,7 +45,14 @@ namespace SSMGui {
             string[] strs = new string[listBox1.Items.Count];
             for (int i = 0; i < strs.Length; i++)
                 strs[i] = listBox1.Items[i].ToString();
-            byte[] newscript = Script.Export(strs);
+            
+            byte[] newscript;
+
+            if (DBMode) {
+                newscript = DBString.Export(strs);
+            } else {
+                newscript = Script.Export(strs);
+            }
             System.IO.File.WriteAllBytes(saveFileDialog1.FileName, newscript);
             MessageBox.Show("Script Saved.", "SSMGui");
         }

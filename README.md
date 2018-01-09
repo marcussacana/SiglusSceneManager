@@ -2,7 +2,7 @@
 [![Build Status](https://travis-ci.org/ForumHulp/pageaddon.svg?branch=master)](http://vnx.uvnworks.com)
 
 A DLL Library tool to allow you write your own string editor of the SiglusEngine Scripts in C#
-Tested with: Hanasaki Work Spring!, Rewrite+
+Tested with: Hanasaki Work Spring!, Rewrite+, Chihaya Rolling v1.10, Planetarian HD
 If You like, give-me a star plz~~
 
 
@@ -18,8 +18,6 @@ And consequently I ended up creating a patch for wordwrap
 PS: If your team have a hacker who can enable the WordWrap by heself, i don't recommend my tool
 
 Notes:
-
--Tested with Rewrite+, Chihaya Rolling v1.10
 
 
 Thanks to frc_ (Fuwanovel)
