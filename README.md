@@ -1,8 +1,10 @@
-### SiglusSceneManager ~1.9
+### SiglusSceneManager ~2.0
 [![Build Status](https://travis-ci.org/ForumHulp/pageaddon.svg?branch=master)](http://vnx.uvnworks.com)
 
 A DLL Library tool to allow you write your own string editor of the SiglusEngine Scripts in C#
+
 Tested with: Hanasaki Work Spring!, Rewrite+, Chihaya Rolling v1.10, Planetarian HD
+
 If You like, give-me a star plz~~
 
 
@@ -13,6 +15,7 @@ SiglusEngine has a dynamic algorithym, feel lucky if it recognize your game's al
 #### SiglusPatcher
 I Write this to enable the Debug Mode to a game without need reanalyze the engine again, 
 And consequently I ended up creating a patch for wordwrap
+
 (this is not the real intention, so no warranties. Run with -WordWrap paramter if is what you want.)
 
 PS: If your team have a hacker who can enable the WordWrap by heself, i don't recommend my tool
