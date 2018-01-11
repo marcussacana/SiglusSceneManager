@@ -76,79 +76,55 @@ namespace SiglusSceneManager {
         private byte[] Encrypt(byte[] Data) => Decrypt(Data);
 
         private byte[] Decrypt(byte[] Data) {
-            bool Switch = false;//This Switch change the Key 1 with the Key 2
-
             byte[] Out = new byte[Data.Length];
             Data.CopyTo(Out, 0);
 
+            uint Key = K1, SwitchTable = 0;
 
-            uint Key = Switch ? K2 : K1, Cnt1 = 0, SwitchTableBase = 0;
+            XOR(ref Out,K2);
 
-            XOR(ref Out, Switch ? K1 : K2);
+            uint EAX, EBX;
+            uint BuffPtr = 0;            
 
-            uint EAX, EBX, ECX, EDX;
-            uint BuffPtr = 0, Backup;
+            for (uint i = 0; i < Data.LongLength / 64; i++) {
+                for (uint y = 0, Ind = 0; y < 0x10; y++, BuffPtr += 4, Ind++) {
+                    if (Ind >= 5)
+                        Ind = 0;
 
-            ECX = (uint)Data.LongLength / 64;
+                    EBX = (uint)XORTBL[SwitchTable + Ind] << 2;
 
-            CntLoop:;
-            Backup = ECX;
-            ECX = 0x10;
-            Cnt1 = 0;
-            CpyCnt:;
-            
-            EAX = XORTBL[SwitchTableBase + Cnt1];
-
-            if (Switch)
-                EAX = (~EAX) & 0xFF;
-
-            EBX = EAX & 0xFF;
-
-            if (EBX != 0x00) {
-                EBX <<= 2;
-                SelectDWTable(ref EBX);
-                EBX = BitConverter.ToUInt32(DWTBL, (int)EBX + 0x3FC) & 0xFF;
-
-                if (EBX != 0x00) {
-                    if (EBX != 0xFF) {
-                        EBX <<= 2;
+                    if (EBX != 0x00) {
                         SelectDWTable(ref EBX);
-                        EDX = BitConverter.ToUInt32(Data, (int)EBX);
+                        EBX = BitConverter.ToUInt32(DWTBL, (int)EBX + 0x3FC) & 0xFF;
 
-                        for (int i = 0; i < 3; i++) {
-                            EBX = (Data[BuffPtr + i]);
-                            EAX = (Data[BuffPtr + i]);
-                            EBX = ((EBX - EAX) << 2) + EDX;                            
-                            EAX += BitConverter.ToUInt32(Data, (int)EBX);
-                            Out[BuffPtr + i] = (byte)(EAX & 0xFF);
+                        if (EBX != 0x00) {
+                            if (EBX != 0xFF) {
+                                System.Diagnostics.Debugger.Log(1, "Warning", "Untested Algorithm, Please Report a issue");
+
+                                EBX <<= 2;
+                                SelectDWTable(ref EBX);
+                                uint DW = BitConverter.ToUInt32(Data, (int)EBX);
+
+                                for (int x = 0; x < 3; x++) {
+                                    EBX = (Data[BuffPtr + x]);
+                                    EAX = (Out[BuffPtr + x]);
+                                    EBX = ((EBX - EAX) << 2) + DW;
+                                    EAX += BitConverter.ToUInt32(Data, (int)EBX);
+                                    Out[BuffPtr + x] = (byte)(EAX & 0xFF);
+                                }
+
+                            } else {
+                                EAX = BitConverter.ToUInt32(Data, (int)BuffPtr) ^ Key;
+                                BitConverter.GetBytes(EAX).CopyTo(Out, (int)BuffPtr);
+                            }
                         }
-                        
-                    } else {
-                        EAX = BitConverter.ToUInt32(Data, (int)BuffPtr) ^ Key;
-                        BitConverter.GetBytes(EAX).CopyTo(Out, (int)BuffPtr);
-                    }
+                    }                 
                 }
+
+                SwitchTable += 5;
+                if (SwitchTable >= XORTBL.Length)
+                    SwitchTable = 0;
             }
-            BuffPtr += 4;
-            EAX = Cnt1 + 1;
-            if (EAX >= 5) {
-                EAX = 0;
-            }
-
-            Cnt1 = EAX;
-            ECX--;
-            if (ECX != 0)
-                goto CpyCnt;
-
-            EAX = SwitchTableBase + 5;
-            if (EAX >= XORTBL.Length)
-                EAX = 0;
-
-            SwitchTableBase = EAX;
-            ECX = Backup - 1;
-
-            if (ECX != 0)
-                goto CntLoop;
 
             return Out;
         }
