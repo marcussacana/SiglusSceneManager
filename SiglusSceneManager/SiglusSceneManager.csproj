@@ -41,8 +41,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="StructStream.cs" />
-    <None Include="Enums-Deprecated.cs" />
-    <None Include="KeyFinde-Deprecated.cs" />
     <Compile Include="DBS.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

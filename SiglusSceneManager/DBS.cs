@@ -1,4 +1,11 @@
-﻿using AdvancedBinary;
+﻿//Compression Level:
+//Valid Values: MAX/COMP1/COMP2/COMP3/COMP4/COMP5/COMP6/COMP7/COMP8
+//MAX == SLOWEST/BEST
+//COMP8 == FAST/TRASH
+//Remove the Define to disable the compression
+#define MAX
+
+using AdvancedBinary;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -28,46 +35,6 @@ namespace SiglusSceneManager {
                 BitConverter.GetBytes(DW).CopyTo(Data, i * 4);
             }
         }
-
-        private byte[] Decompress(byte[] Data) {
-            uint DecLen = BitConverter.ToUInt32(Data, 0x8);
-            byte[] Buffer = new byte[DecLen];
-            if (Buffer.Length == 0) {
-                byte[] Dummy = new byte[Data.Length - 0xC];
-                for (int i = 0; i < Data.Length - 0xC; i++)
-                    Dummy[i] = Data[i + 0xC];
-                return Dummy;
-            }
-
-            byte Flags = 0;
-            byte BitCnt = 0;
-            int BuffPtr = 0;
-            for (int i = 0xC; i < Data.Length; i++) {
-                if (BitCnt == 0x00) {
-                    Flags = Data[i];
-                    BitCnt = 8;
-                    continue;
-                }
-
-                if ((Flags & 1) != 0) {
-                    Buffer[BuffPtr++] = Data[i];
-                } else {
-                    uint Reptions = Data[i++];
-                    uint Offset = (uint)(Data[i] << 4) | (Reptions >> 4);
-                    Reptions = (Reptions & 0xF) + 2;
-
-                    for (int x = 0; x < Reptions; x++, BuffPtr++) {
-                        Buffer[BuffPtr] = Buffer[BuffPtr - Offset];
-                    }
-                }
-
-                BitCnt--;
-                Flags >>= 1;
-            }
-
-            return Buffer;
-        }
-
 
         byte[] DWTBL = new byte[1024];
         byte[] XORTBL = new byte[] { 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0xFF, 0x00, 0x00, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF };
@@ -142,6 +109,48 @@ namespace SiglusSceneManager {
                     Seed--;
             }
         }
+        #endregion
+
+        #region Compression
+        private byte[] Decompress(byte[] Data) {
+            uint DecLen = BitConverter.ToUInt32(Data, 0x8);
+            byte[] Buffer = new byte[DecLen];
+            if (Buffer.Length == 0) {
+                byte[] Dummy = new byte[Data.Length - 0xC];
+                for (int i = 0; i < Data.Length - 0xC; i++)
+                    Dummy[i] = Data[i + 0xC];
+                return Dummy;
+            }
+
+            byte Flags = 0;
+            byte BitCnt = 0;
+            int BuffPtr = 0;
+            for (int i = 0xC; i < Data.Length; i++) {
+                if (BitCnt == 0x00) {
+                    Flags = Data[i];
+                    BitCnt = 8;
+                    continue;
+                }
+
+                if ((Flags & 1) != 0) {
+                    Buffer[BuffPtr++] = Data[i];
+                } else {
+                    uint Reptions = Data[i++];
+                    uint Offset = (uint)(Data[i] << 4) | (Reptions >> 4);
+                    Reptions = (Reptions & 0xF) + 2;
+
+                    for (int x = 0; x < Reptions; x++, BuffPtr++) {
+                        Buffer[BuffPtr] = Buffer[BuffPtr - Offset];
+                    }
+                }
+
+                BitCnt--;
+                Flags >>= 1;
+            }
+
+            return Buffer;
+        }
+
         private void FakeCompress(ref byte[] Data) {
             CompressionHeader Header = new CompressionHeader() {
                 Magic = 1,
@@ -164,6 +173,96 @@ namespace SiglusSceneManager {
 
             Data = null;
             Data = Buffer.ToArray();
+        }
+
+#if MAX
+        const byte MinCompressMatch = 2;
+#elif COMP1
+        const byte MinCompressMatch = 3;
+#elif COMP2
+        const byte MinCompressMatch = 4;
+#elif COMP3
+        const byte MinCompressMatch = 5;
+#elif COMP4
+        const byte MinCompressMatch = 6;
+#elif COMP5
+        const byte MinCompressMatch = 7;
+#elif COMP6
+        const byte MinCompressMatch = 8;
+#elif COMP7
+        const byte MinCompressMatch = 9;
+#elif COMP8
+        const byte MinCompressMatch = 10;
+#else
+        const byte MinCompressMatch = 0xFF;
+#endif
+        private void Compress(ref byte[] Data) {
+            CompressionHeader Header = new CompressionHeader() {
+                Magic = 1,
+                dLen = (uint)Data.LongLength
+            };
+            List<byte> Output = new List<byte>();
+            List<byte> Buffer = new List<byte>();
+            byte f = 0;
+            
+            for (uint i = 0, x = 8; i < Data.LongLength; i++) {
+                for (byte Cnt = 0x11; Cnt > MinCompressMatch && i + Cnt < Data.LongLength; Cnt--) {
+                    byte[] Tmp = GetRange(Data, i, Cnt);
+                    for (ushort r = Cnt; r < 0xFFF && r <= i; r++) {
+                        if (Data[i - r] == Tmp[0] && EqualsAt(Data, Tmp, i - r)) {
+                            Buffer.Add((byte)(((r & 0xF) << 4) | (Cnt - 2)));
+                            Buffer.Add((byte)(r >> 4));
+                            i += (uint)Cnt - 1;
+                            goto Cont;
+                        }
+                    }
+                }
+
+                f |= (byte)(1 << (int)(8 - x));
+                Buffer.Add(Data[i]);
+
+                Cont:;
+                x--;
+                if (x == 0) {
+                    Output.Add(f);
+                    Output.AddRange(Buffer);
+
+                    Buffer = new List<byte>();
+                    x = 8;
+                    f = 0;
+                }
+            }
+
+            if (Buffer.Count != 0) {
+                Output.Add(f);
+                Output.AddRange(Buffer);
+            }
+
+            Header.cLen = (uint)Output.LongCount() + 0x8;
+
+            Output.InsertRange(0, Tools.BuildStruct(ref Header));
+
+            Data = null;
+            Data = Output.ToArray();
+        }
+
+        private byte[] GetRange(byte[] Data, uint Start, uint Length) {
+            byte[] Result = new byte[Length];
+            for (uint i = 0; i < Length; i++) {
+                Result[i] = Data[Start + i];
+            }
+
+            return Result;
+        }
+        private bool EqualsAt(byte[] Data, byte[] Content, uint At) {
+            if (At + Content.Length >= Data.Length)
+                return false;
+
+            for (uint i = 0; i < Content.Length; i++) {
+                if (Data[i + At] != Content[i])
+                    return false;
+            }
+            return true;
         }
 
         #endregion
@@ -256,7 +355,11 @@ namespace SiglusSceneManager {
             Tools.BuildStruct(ref Header).CopyTo(Data, 0);
             
             Data = Encrypt(Data);
+#if !MAX && !COMP1 && !COMP2 && !COMP3 && !COMP4 && !COMP5 && !COMP6 && !COMP7 && !COMP8
             FakeCompress(ref Data);
+#else
+            Compress(ref Data);
+#endif
 
             XOR(ref Data, Begin: 1);
 
@@ -300,7 +403,7 @@ namespace SiglusSceneManager {
 
     }
 
-#pragma warning disable 649 
+#pragma warning disable 649
     internal struct Database {
         public uint StringEnd;//Columns Checksum Offset?
         public uint Unk1;
