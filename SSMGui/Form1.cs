@@ -16,7 +16,7 @@ namespace SSMGui {
         private void openFileDialog1_FileOk(object sender, CancelEventArgs e) {
             byte[] file = System.IO.File.ReadAllBytes(openFileDialog1.FileName);
             string[] Strs;
-            if (openFileDialog1.FilterIndex == 0) {
+            if (openFileDialog1.FilterIndex == 1) {
                 Script = new SSManager(file);
                 Strs = Script.Import();
                 DBMode = false;

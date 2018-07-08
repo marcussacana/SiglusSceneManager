@@ -27,8 +27,10 @@ namespace SiglusPatcher {
             }
             bool Wordwrap = false;
             foreach (string exe in args) {
-                if (exe.Trim(' ', '-', '\\').ToLower().StartsWith("wordwrap"))
+                if (exe.Trim(' ', '-', '\\').ToLower().StartsWith("wordwrap")) {
                     Wordwrap = true;
+                    continue;
+                }
                 byte[] Executable = File.ReadAllBytes(exe);
                 bool NoLoop = false;
                 again: ;
