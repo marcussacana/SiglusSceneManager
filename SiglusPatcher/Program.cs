@@ -109,7 +109,10 @@ namespace SiglusPatcher {
         }
 
         private static void ExtractResource(string Resource, string Dir) {
-            string OutPath = Dir + Resource;
+            string OutPath = Dir.TrimEnd('\\') + "\\" + Resource;
+            if (OutPath.StartsWith("\\"))
+                OutPath = '.' + OutPath;
+
             while (File.Exists(OutPath))
                 try { File.Delete(OutPath); } catch {};
 
