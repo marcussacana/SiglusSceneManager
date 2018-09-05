@@ -16,6 +16,7 @@ namespace SiglusSceneManager {
     public class DBS {
         List<bool> DataFormat = new List<bool>();
         bool Unicode = false;
+        bool SJIS = false;
         byte[] Script;
 
         public DBS(byte[] Script) {
@@ -274,8 +275,13 @@ namespace SiglusSceneManager {
             Database Header = new Database();
             Tools.ReadStruct(Script, ref Header);
             List<string> Strings = new List<string>();
-            
-            
+
+#if DEBUG
+            if (System.Diagnostics.Debugger.IsAttached) {
+                File.WriteAllBytes("decrypted.dbs", Script);
+            }
+#endif
+
             using (Stream tmp = new MemoryStream(Script))
             using (StructReader Reader = new StructReader(tmp, false, Encoding: GetEncoding())) {
 
@@ -367,7 +373,7 @@ namespace SiglusSceneManager {
         }    
        
         /// <summary>
-        /// Try discovery the DB Encoding by the string sufix (unicode ends with 0x0000 and utf8 0x00)
+        /// Try discovery the DB Encoding by the string
         /// </summary>
         private void DiscoveryEncoding() {
             Database Header = new Database();
@@ -386,12 +392,39 @@ namespace SiglusSceneManager {
                 }
             }
 
+            uint UTF8Points = 0;
+            uint SJISPoints = 0;
+            for (uint i = Header.StringTable; i < Header.StringEnd; i++) {
+                byte Byte = Script[i];
+                if (Byte == 0x00)
+                    continue;
+                if (IsUTF8(Byte) && !IsSJIS(Byte))
+                    UTF8Points++;
+                if (!IsUTF8(Byte) && IsSJIS(Byte))
+                    SJISPoints++;
+            }
+
             Unicode = false;
+            SJIS = SJISPoints > UTF8Points;
+        }
+
+        private bool IsUTF8(byte Prefix) {
+            if ((Prefix >> 4 == 0xE && ((Prefix & 0xF) >= 0x3 && (Prefix & 0xF) <= 8)) || Prefix == 0xC3)
+                return true;
+            return false;
+        }
+
+        private bool IsSJIS(byte Prefix) {
+            if ((Prefix >= 0x81 && Prefix <= 0x83) || (Prefix >= 0x88 && Prefix <= 0xEE))
+                return true;
+            return false;
         }
 
         private Encoding GetEncoding() {
             if (Unicode)
                 return Encoding.Unicode;
+            if (SJIS)
+                return Encoding.GetEncoding(932);
             return Encoding.UTF8;
         }
         private StringStyle GetStrEnd() {
