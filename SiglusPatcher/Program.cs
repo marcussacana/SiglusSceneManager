@@ -2,6 +2,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
 
@@ -13,12 +14,18 @@ namespace SiglusPatcher {
           0x6A15D5, 0x6A17D0, 0x6A17FF, 0x6A1355, 0x6A12DB, 0x6A1788,
           0x6A111D, 0x6A14A1, 0x6A125B, 0x6A10AD };
 
-        static readonly byte[] ValidationData = new byte[] { /*0x00,*/ 0x8B, 0x01, 0x3B, 0x02, 0x75, 0x55 };
+
+        //If one don't works, try other....
+        static readonly byte[] ValidationData = new byte[] { 0x00, 0x8B, 0x01, 0x3B, 0x02, 0x75, 0xFF, 0x83, 0xC1, 0x04 };
+        //static readonly byte[] ValidationData = new byte[] { 0x8B, 0x01, 0x3B, 0x02, 0x75, 0xFF };
+        //static readonly byte[] ValidationData = new byte[] { 0x8B, 0x01, 0x3B, 0x02, 0x75, 0xFF, 0x83, 0xC1, 0x04 };
+
+        static readonly byte[] Unks = new byte[] { 0x55, 0x74 };
 
         private static readonly Version BypVer = new Version(1, 1, 107, 0);
 
         static void Main(string[] args) {
-            Console.Title = "SiglusPatcher - By Marcussacana";
+            Console.Title = "SiglusPatcher v2 - By Marcussacana";
             if (args?.Length == 0) {
                 Console.WriteLine("Drag&Drop the SiglusEngine.exe to the \"{0}\" to enable the Debug Mode", Path.GetFileName(Application.ExecutablePath));
                 Console.WriteLine("Or execute -WordWrap SiglusEngine.exe if you want enable the WordWrap. (Test before release!)");
@@ -40,8 +47,15 @@ namespace SiglusPatcher {
                         if (Pos != -1) {
                             Pos = -1;
                             break;
-                        } else
-                            Pos = i + (ValidationData.Length - 2);//0x7555
+                        } else {
+                            uint Rst = IndexOfSequence(ValidationData, new byte[] { 0x75, 0xFF });
+                            if (Rst == uint.MaxValue) {
+                                Pos = -1;
+                                break;
+                            }
+                            Pos = i + (int)Rst;
+                            break;
+                        }
                 }
                 if (Pos == -1 || Wordwrap) {                    
                     if (NoLoop) {
@@ -62,18 +76,18 @@ namespace SiglusPatcher {
                             continue;
                     }
 
-                    if (File.Exists(Path.GetDirectoryName(exe) + "\\SiglusDebugger3.dll"))
-                        File.Delete(Path.GetDirectoryName(exe) + "\\SiglusDebugger3.dll");
+                    if (File.Exists(GetDirectory(exe) + "\\SiglusDebugger3.dll"))
+                        File.Delete(GetDirectory(exe) + "\\SiglusDebugger3.dll");
 
                     Console.WriteLine("Detecting Encryption Key...");
                     byte[] OriKey = GetSiglusKey(exe);
 
                     Console.WriteLine("Extracting Engine...");
-                    ExtractResource("SiglusEngine.exe", Path.GetDirectoryName(exe) + "\\");
-                    ExtractResource("SiglusDRM.dll", Path.GetDirectoryName(exe) + "\\");
+                    ExtractResource("SiglusEngine.exe", GetDirectory(exe) + "\\");
+                    ExtractResource("SiglusDRM.dll", GetDirectory(exe) + "\\");
 
                     Console.WriteLine("Updating Encryption Key...");
-                    Executable = File.ReadAllBytes(Path.GetDirectoryName(exe) + "\\SiglusEngine.exe");
+                    Executable = File.ReadAllBytes(GetDirectory(exe) + "\\SiglusEngine.exe");
                     for (int i = 0; i < OriKey.Length; i++) {
                         Console.WriteLine("Patching at 0x{0:X8} from 0x{1:X2} to 0x{2:X2}", KeyPointers[i], Executable[KeyPointers[i]], OriKey[i]);
                         Executable[KeyPointers[i]] = OriKey[i];
@@ -82,12 +96,12 @@ namespace SiglusPatcher {
                     NoLoop = true;
                     goto again;
                 }
-                Console.WriteLine("Patching at 0x{0:X8} from 0x7555 to 0x9090", Pos);
+                Console.WriteLine($"Patching at 0x{Pos:X8} from 0x75{Executable[Pos + 1].ToString("X2")} to 0x9090");
                 Executable[Pos++] = 0x90;
                 Executable[Pos] = 0x90;
 
                 Console.WriteLine("Extracting SiglusDebugger...");
-                ExtractResource("SiglusDebugger3.dll", Path.GetDirectoryName(exe) + "\\");
+                ExtractResource("SiglusDebugger3.dll", GetDirectory(exe) + "\\");
 
                 if (!File.Exists(exe + ".bak"))
                     File.Move(exe, exe + ".bak");
@@ -97,6 +111,20 @@ namespace SiglusPatcher {
             Console.ReadKey();
         }
 
+        private static string GetDirectory(string File) {
+            if (File.Length < 2)
+                return Path.GetDirectoryName(File);
+            if (File[1] == ':')
+                return Path.GetDirectoryName(File);
+            return AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\');
+        }
+        private static uint IndexOfSequence(byte[] Data, byte[] Sequence) {
+            for (uint i = 0; i < Data.Length; i++) {
+                if (EqualsAt(Data, Sequence, i, true))
+                    return i;
+            }
+            return uint.MaxValue;
+        }
         private static byte[] GetSiglusKey(string Exe) {
             Process Proc = Process.Start(Exe);
             while (Proc.MainWindowHandle == IntPtr.Zero)
@@ -130,12 +158,16 @@ namespace SiglusPatcher {
             return new Version(int.Parse(Version[0].Trim()), int.Parse(Version[1].Trim()), int.Parse(Version[2].Trim()), int.Parse(Version[3].Trim()));
         }
 
-        private static bool EqualsAt(byte[] Data, byte[] DataToCompare, uint At) {
+        private static bool EqualsAt(byte[] Data, byte[] DataToCompare, uint At, bool NoMask = false) {
             if (DataToCompare.LongLength + At > Data.LongLength)
                 return false;
-            for (uint i = 0; i < DataToCompare.LongLength; i++)
-                if (Data[i + At] != DataToCompare[i])
+            for (uint i = 0; i < DataToCompare.LongLength; i++){
+                byte Byte = Data[i + At];
+                if (DataToCompare[i] == 0xFF && Unks.Contains(Byte) && !NoMask)
+					continue;
+                if (Byte != DataToCompare[i])
                     return false;
+			}
             return true;
         }
     }
