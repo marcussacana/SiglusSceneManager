@@ -125,15 +125,43 @@ namespace SiglusPatcher {
             }
             return uint.MaxValue;
         }
+
         private static byte[] GetSiglusKey(string Exe) {
-            Process Proc = Process.Start(Exe);
-            while (Proc.MainWindowHandle == IntPtr.Zero)
-                System.Threading.Thread.Sleep(100);
-            KeyFinder.Key Key = KeyFinder.ReadProcess(Proc.Id)[0];
-            byte[] KeyB = Key.KEY;
-            Proc.Kill();
-            Console.WriteLine("Encryption Key Detected:\n{0}", Key.KeyStr);
-            return KeyB;
+            try
+            {
+                Process Proc = Process.Start(Exe);
+                while (Proc.MainWindowHandle == IntPtr.Zero)
+                    System.Threading.Thread.Sleep(100);
+                KeyFinder.Key Key = KeyFinder.ReadProcess(Proc.Id)[0];
+                byte[] KeyB = Key.KEY;
+                Proc.Kill();
+                Console.WriteLine("Encryption Key Detected:\n{0}", Key.KeyStr);
+                return KeyB;
+            }
+            catch (Exception ex) {
+                var Color = Console.ForegroundColor;
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Failed, Please, Report a issue... LOG:\n{0}", ex.ToString());
+                Console.ForegroundColor = Color;
+
+                Console.WriteLine("You know the key? If yes, type it...");
+                string Reply = Console.ReadLine();
+                Reply = Reply.ToUpper().Replace("0X", "").Replace(",", "").Replace(" ", "").Trim();
+
+                if (string.IsNullOrWhiteSpace(Reply) || Reply.Length/2 != KeyPointers.Length)
+                    throw new Exception();
+
+                if ((from x in Reply where ((x >= '0' && x <= '9') || (x >= 'A' && x <= 'F')) select x).Count() != Reply.Length)
+                    throw new Exception();
+
+                byte[] Key = new byte[KeyPointers.Length];
+                for (byte i = 0; i < Key.Length; i++)
+                {
+                    Key[i] = Convert.ToByte(Reply.Substring(i * 2, 2), 16);
+                }
+
+                return Key;
+            }
         }
 
         private static void ExtractResource(string Resource, string Dir) {
