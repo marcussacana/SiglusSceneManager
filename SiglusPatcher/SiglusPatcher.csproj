@@ -63,5 +63,8 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\SiglusDRM.dll" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\SiglusEngineV2.exe" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

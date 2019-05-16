@@ -9,10 +9,15 @@ using System.Windows.Forms;
 namespace SiglusPatcher {
     class Program {
 
-        static readonly uint[] KeyPointers = new uint[] 
+        static readonly uint[] KeyPointersV1 = new uint[]
         { 0x6A1416, 0x6A13E1, 0x6A163B, 0x6A1593, 0x6A11D1, 0x6A16F6,
           0x6A15D5, 0x6A17D0, 0x6A17FF, 0x6A1355, 0x6A12DB, 0x6A1788,
           0x6A111D, 0x6A14A1, 0x6A125B, 0x6A10AD };
+
+        static readonly uint[] KeyPointersV2 = new uint[]
+        { 0x75A61E, 0x75A5E9, 0x75A843, 0x75A79B, 0x75A3D9, 0x75A8FE,
+          0x75A7DD, 0x75A9D8, 0x75AA07, 0x75A55D, 0x75A4E3, 0x75A990,
+          0x75A325, 0x75A6A9, 0x75A463, 0x75A2B5 };
 
 
         //If one don't works, try other....
@@ -22,10 +27,11 @@ namespace SiglusPatcher {
 
         static readonly byte[] Unks = new byte[] { 0x55, 0x74 };
 
-        private static readonly Version BypVer = new Version(1, 1, 107, 0);
+        private static readonly Version BypV1Ver = new Version(1, 1, 107, 0);
+        private static readonly Version BypV2Ver = new Version(1, 1, 134, 0);
 
         static void Main(string[] args) {
-            Console.Title = "SiglusPatcher v2 - By Marcussacana";
+            Console.Title = "SiglusPatcher v3 - By Marcussacana";
             if (args?.Length == 0) {
                 Console.WriteLine("Drag&Drop the SiglusEngine.exe to the \"{0}\" to enable the Debug Mode", Path.GetFileName(Application.ExecutablePath));
                 Console.WriteLine("Or execute -WordWrap SiglusEngine.exe if you want enable the WordWrap. (Test before release!)");
@@ -59,22 +65,37 @@ namespace SiglusPatcher {
                 }
                 if (Pos == -1 || Wordwrap) {                    
                     if (NoLoop) {
-                        Console.WriteLine("Something Looks Wrong...");
+                        Console.WriteLine("Something Looks Wrong, Already Patched?");
                         Console.ReadKey();
                         continue;
                     }
+
                     if (!Wordwrap)
                         Console.WriteLine("Executable Protected? Trying Brute Patch mode...");
                     else
-                        Console.WriteLine("When release the user needs the SiglusEngine.exe and SiglusDRM.dll to Play, the SiglusDebugger3.dll isn't needed.");
+                        Console.WriteLine("When release the user needs the SiglusEngine.exe and maybe the SiglusDRM.dll (v1 only) to Play, the SiglusDebugger3.dll isn't needed.");
 
                     Wordwrap = false;
                     Version Version = GetFileVersion(exe);
-                    if (Version > BypVer) {
-                        Console.WriteLine("This executable is too newer, the patch can cause bugs, Continue?");
+                    if (Version > BypV2Ver) {
+                        Console.WriteLine("This executable is too newer, the patch can cause bugs, Continue? (Y/N)");
                         if (Console.ReadKey().KeyChar.ToString().ToUpper()[0] != 'Y')
                             continue;
+                        Console.WriteLine();
                     }
+
+                    int Ver = 0;
+                    if (Version < BypV1Ver)
+                    {
+                        Console.WriteLine("What version you want try? (1/2)");
+                        if (Console.ReadKey().KeyChar.ToString().ToUpper()[0] == '2')
+                            Ver = 2;
+                        else
+                            Ver = 1;
+                        Console.WriteLine();
+                    }
+                    else
+                        Ver = 2;
 
                     if (File.Exists(GetDirectory(exe) + "\\SiglusDebugger3.dll"))
                         File.Delete(GetDirectory(exe) + "\\SiglusDebugger3.dll");
@@ -83,14 +104,20 @@ namespace SiglusPatcher {
                     byte[] OriKey = GetSiglusKey(exe);
 
                     Console.WriteLine("Extracting Engine...");
-                    ExtractResource("SiglusEngine.exe", GetDirectory(exe) + "\\");
-                    ExtractResource("SiglusDRM.dll", GetDirectory(exe) + "\\");
+                    if (Ver == 1)
+                    {
+                        ExtractResource("SiglusEngine.exe", GetDirectory(exe) + "\\");
+                        ExtractResource("SiglusDRM.dll", GetDirectory(exe) + "\\");
+                    } else
+                        ExtractResource("SiglusEngineV2.exe", GetDirectory(exe) + "\\", "SiglusEngine.exe");
 
                     Console.WriteLine("Updating Encryption Key...");
                     Executable = File.ReadAllBytes(GetDirectory(exe) + "\\SiglusEngine.exe");
+
                     for (int i = 0; i < OriKey.Length; i++) {
-                        Console.WriteLine("Patching at 0x{0:X8} from 0x{1:X2} to 0x{2:X2}", KeyPointers[i], Executable[KeyPointers[i]], OriKey[i]);
-                        Executable[KeyPointers[i]] = OriKey[i];
+                        uint Pointer = Ver == 1 ? KeyPointersV1[i] : KeyPointersV2[i];
+                        Console.WriteLine("Patching at 0x{0:X8} from 0x{1:X2} to 0x{2:X2}", Pointer, Executable[Pointer], OriKey[i]);
+                        Executable[Pointer] = OriKey[i];
                     }
 
                     NoLoop = true;
@@ -148,13 +175,13 @@ namespace SiglusPatcher {
                 string Reply = Console.ReadLine();
                 Reply = Reply.ToUpper().Replace("0X", "").Replace(",", "").Replace(" ", "").Trim();
 
-                if (string.IsNullOrWhiteSpace(Reply) || Reply.Length/2 != KeyPointers.Length)
-                    throw new Exception();
+                if (string.IsNullOrWhiteSpace(Reply) || Reply.Length/2 != KeyPointersV1.Length)
+                    throw new Exception("Bad input key format");
 
                 if ((from x in Reply where ((x >= '0' && x <= '9') || (x >= 'A' && x <= 'F')) select x).Count() != Reply.Length)
-                    throw new Exception();
+                    throw new Exception("Bad input key format");
 
-                byte[] Key = new byte[KeyPointers.Length];
+                byte[] Key = new byte[KeyPointersV1.Length];
                 for (byte i = 0; i < Key.Length; i++)
                 {
                     Key[i] = Convert.ToByte(Reply.Substring(i * 2, 2), 16);
@@ -164,8 +191,8 @@ namespace SiglusPatcher {
             }
         }
 
-        private static void ExtractResource(string Resource, string Dir) {
-            string OutPath = Dir.TrimEnd('\\') + "\\" + Resource;
+        private static void ExtractResource(string Resource, string Dir, string Filename = null) {
+            string OutPath = Dir.TrimEnd('\\') + "\\" + (Filename ?? Resource);
             if (OutPath.StartsWith("\\"))
                 OutPath = '.' + OutPath;
 
